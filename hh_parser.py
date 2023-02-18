@@ -1,21 +1,43 @@
 import requests
 from bs4 import BeautifulSoup
 import re
-
+import time
 
 def find_links(job_title:str) -> list[str]:
+    job_title.replace(" ", "+")
     links = []
-    page = 1
-    source_url = f"https://hh.kz/search/resume?area=40&currency_code=KZT&exp_period=all_time&logic=normal&no_magic=true&order_by=relevance&ored_clusters=true&pos=full_text&text={job_title}&items_on_page=100&page={page}"
-    while len(links) < 10:
-        source_html = requests.get(source_url, headers={'User-Agent': 'Custom'})
-        source_soup = BeautifulSoup(source_html.text, 'html.parser')
-        for block in source_soup.findAll('span', attrs={'class': 'bloko-header-section-3'}):
-            link = "https://hh.kz/" + block.find('a', attrs={'class': 'serp-item__title'}).get('href').split('?')[0]
+
+    url = f"https://hh.kz/search/resume?text={job_title}&area=40&currency_code=KZT&no_magic=true&ored_clusters=true&order_by=relevance&logic=normal&pos=full_text&exp_period=all_time"
+    html = requests.get(url, headers={'User-Agent': 'Custom'})
+    soup = BeautifulSoup(html.text, 'html.parser')
+    
+    try:
+        page_count = int(soup.find('div', attrs={'class': 'pager'}).find_all('span', recursive=False)[-1].find('a').find('span').text)
+    except AttributeError:
+        page_count = 0
+        for block in soup.findAll('a', attrs={'class': 'serp-item__title'}):
+            link = "https://hh.kz" + block.get('href').split('?')[0]
             links.append(link)
-            if len(links) >= 10:
-                break
-        page += 1
+            print(link)
+        return links
+
+
+    for page in range(page_count):
+        url = f"https://hh.kz/search/resume?text={job_title}&area=40&currency_code=KZT&no_magic=true&ored_clusters=true&order_by=relevance&logic=normal&pos=full_text&exp_period=all_time&page={page}"
+        html = requests.get(url, headers={'User-Agent': 'Custom'})
+        soup = BeautifulSoup(html.text, 'html.parser')
+
+        for block in soup.findAll('a', attrs={'class': 'serp-item__title'}):
+            link = "https://hh.kz" + block.get('href').split('?')[0]
+            links.append(link)
+            print(link)
+        print(page)
+
+        if len(links) > 500:
+            break
+        else: 
+            time.sleep(1)
+
     return links
 
 
@@ -23,36 +45,47 @@ def parse_link(link: str) -> dict:
     link_html = requests.get(link, headers={'User-Agent': 'Custom'})
     link_soup = BeautifulSoup(link_html.text, 'html.parser')
     
+
     # finding title
-    if len(link_soup.findAll('span', attrs={'class': 'resume-block__title-text', 'data-qa': "resume-block-title-position"})) == 0:
-        title = "Unspecified"
+    title = "Unspecified"
     for block in link_soup.findAll('span', attrs={'class': 'resume-block__title-text', 'data-qa': "resume-block-title-position"}):
         title = block.text
     
 
     # finding specialization
-    if len(link_soup.findAll('li', attrs={'class': 'resume-block__specialization'})) == 0:
-        specialization = "Unspecified"
+    specialization = "Unspecified"
     for block in link_soup.findAll('li', attrs={'class': 'resume-block__specialization'}):
         specialization = block.text
     
 
     # finding salary
-    if len(link_soup.findAll('span', attrs={'class': 'resume-block__salary'})) == 0:
-        salary = "Unspecified"
-    else:
-        for block in link_soup.findAll('span', attrs={'class': 'resume-block__salary'}):
-            salary = block.text
+    salary = "Unspecified"
+    for block in link_soup.findAll('span', attrs={'class': 'resume-block__salary'}):
+        salary = block.text
+        if "USD" in salary:
+            salary = "".join(i for i in salary if i.isdigit())
+            salary = str(int(float(salary) * 444.07))
+            # current exchange rate from INVESTING.COM
+            # 1 USD   <===>   444.07 KZT
+        elif "EUR" in salary:
+            salary = "".join(i for i in salary if i.isdigit())
+            salary = str(int(float(salary) * 478.135))
+            # current exchange rate from INVESTING.COM
+            # 1 EUR   <===>   478.135 KZT
+        else:
             salary = "".join(i for i in salary if i.isdigit())
 
+
     # finding age
-    if len(link_soup.findAll('span', attrs={'data-qa': 'resume-personal-age'})) == 0:
-        age = "Unspecified"
-    else:
+    if len(link_soup.findAll('span', attrs={'data-qa': 'resume-personal-age'})) != 0:
         age = link_soup.findAll('span', attrs={'data-qa': 'resume-personal-age'})[0].text
         age = "".join(i for i in age if i.isdigit())
+    else:
+        age = "Unspecified"
+        
 
     # finding employment
+    employment = 'Unspecified'
     for block in link_soup.findAll('div', attrs={'class': 'resume-block-container'}):
         if "Занятость" in block.text:
             employment = block.text.split('Занятость: ')[1].split('График работы:')[0]
@@ -60,10 +93,10 @@ def parse_link(link: str) -> dict:
         elif "Employment" in block.text:
             employment = block.text.split('Employment: ')[1].split('Work schedule:')[0]
             break
-        else:
-            employment = 'Unspecified'
+
 
     # finding schedule
+    schedule = 'Unspecified'
     for block in link_soup.findAll('div', attrs={'class': 'resume-block-container'}):
         if "График" in block.text:
             schedule = block.text.split('График работы: ')[1]
@@ -71,8 +104,7 @@ def parse_link(link: str) -> dict:
         elif "schedule" in block.text:
             schedule = block.text.split('schedule: ')[1]
             break
-        else:
-            schedule = 'Unspecified'
+            
 
     # finding experience
     experience_years = "Unspecified"
@@ -88,16 +120,19 @@ def parse_link(link: str) -> dict:
             else:
                 break
 
+
     # finding citizenship
     for block in link_soup.findAll('div', attrs={'class': 'resume-block-container'}):
         if not block.find('p') is None:
             citizenship = block.find('p').text[13:]
+
 
     # finding sex
     if len(link_soup.findAll('span', attrs={'data-qa': 'resume-personal-gender'})) == 0:
         sex = "Unspecified"
     else:
         sex = link_soup.findAll('span', attrs={'data-qa': 'resume-personal-gender'})[0].text
+
 
     resume = {
         'title': title,
@@ -113,11 +148,11 @@ def parse_link(link: str) -> dict:
         'link': link
     }
 
+
     print(resume)
     return resume
     
-# print(parse_link("https://hh.kz/resume/c5ffe3dc00063777b90039ed1f4f566e546755"))
 # HEADHUNTER RESUME PARSER
-# BY ABDRAKHMANOV YELNUR AND ANANYAN KAREN
+# BY ABDRAKHMANOV YELNUR, ANANYAN KAREN AND ASLAN JELEUBAY
 # SE-2203, ASTANA IT UNIVERSITY
 # 2023
