@@ -11,15 +11,14 @@ def dict_list_to_csv(dict_list:list[dict], file_name: str, keys: list[str]):
     print("CSV file created successfully")
     return
 
-def get_resumes_list(job_title):
+def get_resumes_list(job_title: str) -> list[dict]:
     resumes: list[dict] = []
     links = findLinks(job_title)
     for link in links:
         resumes.append(dict(parse_link(link)))
     return resumes
 
-def output_table(table_name):
+def output_frame(dataframe: pd.DataFrame):
     pd.set_option('display.max_columns', 10)
     pd.options.display.expand_frame_repr = False
-    df = pd.read_csv(table_name + ".csv")
-    print(df)
+    print(dataframe)
