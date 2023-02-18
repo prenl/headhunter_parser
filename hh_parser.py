@@ -132,6 +132,10 @@ def parse_link(link: str) -> dict:
         sex = "Unspecified"
     else:
         sex = link_soup.findAll('span', attrs={'data-qa': 'resume-personal-gender'})[0].text
+        if "Male" in sex:
+            sex = "Мужчина"
+        else:
+            sex = "Женщина"
 
 
     resume = {
