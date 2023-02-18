@@ -19,6 +19,7 @@ def find_links(job_title:str) -> list[str]:
             link = "https://hh.kz" + block.get('href').split('?')[0]
             links.append(link)
             print(link)
+        print('\n' * 10)
         return links
 
 
@@ -30,8 +31,6 @@ def find_links(job_title:str) -> list[str]:
         for block in soup.findAll('a', attrs={'class': 'serp-item__title'}):
             link = "https://hh.kz" + block.get('href').split('?')[0]
             links.append(link)
-            print(link)
-        print(page)
 
         if len(links) > 500:
             break
@@ -151,7 +150,6 @@ def parse_link(link: str) -> dict:
         'sex': sex,
         'link': link
     }
-
 
     print(resume)
     return resume

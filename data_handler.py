@@ -2,24 +2,20 @@ from hh_parser import *
 import pandas as pd
 import csv
 
-def dict_list_to_csv(dict_list:list[dict], file_name: str, keys: list[str]):
-    with open(file_name + ".csv", "w", newline="", encoding="UTF-8") as csv_file:
-        writer = csv.DictWriter(csv_file, fieldnames=keys)
-        writer.writeheader()
-        for row in dict_list or []:
-            writer.writerow(row)
-        csv_file.close()
-    print("CSV file created successfully")
-    return
 
-def parse_resumes(job_title: str) -> list[dict]:
-    resumes: list[dict] = []
+def parse_resumes(job_title: str):
     links = find_links(job_title)
-    for link in links:
-        resumes.append(dict(parse_link(link)))
-    return resumes
 
-def output_frame(dataframe: pd.DataFrame):
-    pd.set_option('display.max_columns', 10)
-    pd.options.display.expand_frame_repr = False
-    print(dataframe)
+    with open('table.csv', 'a+', newline='', encoding="utf-8") as writer_obj:
+        resume = dict(parse_link(links[0]))
+        csv_writer = csv.writer(writer_obj)
+        csv_writer.writerow(resume.keys())
+        csv_writer.writerow(resume.values())
+            
+    for i in range(1, len(links)):
+        resume = dict(parse_link(links[i]))
+        with open('table.csv', 'a+', newline='', encoding="utf-8", ) as writer_obj:
+            csv_writer = csv.writer(writer_obj)
+            csv_writer.writerow(resume.values())
+
+    print("CSV FILE CREATED SUCCESSFULLY")
