@@ -13,7 +13,7 @@ def dict_list_to_csv(dict_list:list[dict], file_name: str, keys: list[str]):
 
 def get_resumes_list(job_title: str) -> list[dict]:
     resumes: list[dict] = []
-    links = findLinks(job_title)
+    links = find_links(job_title)
     for link in links:
         resumes.append(dict(parse_link(link)))
     return resumes
