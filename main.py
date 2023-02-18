@@ -17,10 +17,12 @@ def get_resumes_list(job_title):
     return resumes
 
 
-resumes: list[dict] = get_resumes_list("java")
+# resumes: list[dict] = get_resumes_list("java")
 
-keys = list(resumes[0].keys())
-dict_list_to_csv(resumes, "table", keys)
+# keys = list(resumes[0].keys())
+# dict_list_to_csv(resumes, "table", keys)
 
+pd.set_option('display.max_columns', 10)
+pd.options.display.expand_frame_repr = False
 df = pd.read_csv("table.csv")
 print(df)
