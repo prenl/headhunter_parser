@@ -1,3 +1,10 @@
 
 table.csv
 __pycache__/hh_parser.cpython-311.pyc
+/.idea/.gitignore
+/.idea/headhunter_parser.iml
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/inspectionProfiles/profiles_settings.xml
+/.idea/inspectionProfiles/Project_Default.xml
+/.idea/vcs.xml
