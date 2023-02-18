@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 import re
 
 
-def findLinks(job_title:str) -> list[str]:
+def find_links(job_title:str) -> list[str]:
     links = []
     page = 1
     source_url = f"https://hh.kz/search/resume?area=40&currency_code=KZT&exp_period=all_time&logic=normal&no_magic=true&order_by=relevance&ored_clusters=true&pos=full_text&text={job_title}&items_on_page=100&page={page}"
