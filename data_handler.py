@@ -3,10 +3,11 @@ import pandas as pd
 import csv
 
 
-def parse_resumes(job_title: str):
-    links = find_links(job_title)
+def parse_resumes(job_title: str, number_of_resumes:int):
+    links = find_links(job_title, number_of_resumes)
+    print(len(links))
 
-    with open('table.csv', 'a+', newline='', encoding="utf-8") as writer_obj:
+    with open(job_title + '.csv', 'a+', newline='', encoding="utf-8", ) as writer_obj:
         resume = dict(parse_link(links[0]))
         csv_writer = csv.writer(writer_obj)
         csv_writer.writerow(resume.keys())
@@ -14,7 +15,7 @@ def parse_resumes(job_title: str):
             
     for i in range(1, len(links)):
         resume = dict(parse_link(links[i]))
-        with open('table.csv', 'a+', newline='', encoding="utf-8", ) as writer_obj:
+        with open(job_title + '.csv', 'a+', newline='', encoding="utf-8", ) as writer_obj:
             csv_writer = csv.writer(writer_obj)
             csv_writer.writerow(resume.values())
 

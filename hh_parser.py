@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 import re
 import time
 
-def find_links(job_title:str) -> list[str]:
+def find_links(job_title:str, number_of_links: int) -> list[str]:
     job_title.replace(" ", "+")
     links = []
 
@@ -19,6 +19,8 @@ def find_links(job_title:str) -> list[str]:
             link = "https://hh.kz" + block.get('href').split('?')[0]
             links.append(link)
             print(link)
+            if len(links) >= number_of_links:
+                return links
         print('\n' * 10)
         return links
 
@@ -31,11 +33,10 @@ def find_links(job_title:str) -> list[str]:
         for block in soup.findAll('a', attrs={'class': 'serp-item__title'}):
             link = "https://hh.kz" + block.get('href').split('?')[0]
             links.append(link)
+            if len(links) >= number_of_links:
+                return links
 
-        if len(links) > 500:
-            break
-        else: 
-            time.sleep(1)
+        time.sleep(1)
 
     return links
 
@@ -46,19 +47,19 @@ def parse_link(link: str) -> dict:
     
 
     # finding title
-    title = "Unspecified"
+    title = None
     for block in link_soup.findAll('span', attrs={'class': 'resume-block__title-text', 'data-qa': "resume-block-title-position"}):
         title = block.text
     
 
     # finding specialization
-    specialization = "Unspecified"
+    specialization = None
     for block in link_soup.findAll('li', attrs={'class': 'resume-block__specialization'}):
         specialization = block.text
     
 
     # finding salary
-    salary = "Unspecified"
+    salary = None
     for block in link_soup.findAll('span', attrs={'class': 'resume-block__salary'}):
         salary = block.text
         if "USD" in salary:
@@ -80,11 +81,11 @@ def parse_link(link: str) -> dict:
         age = link_soup.findAll('span', attrs={'data-qa': 'resume-personal-age'})[0].text
         age = "".join(i for i in age if i.isdigit())
     else:
-        age = "Unspecified"
+        age = None
         
 
     # finding employment
-    employment = 'Unspecified'
+    employment = None
     for block in link_soup.findAll('div', attrs={'class': 'resume-block-container'}):
         if "Занятость" in block.text:
             employment = block.text.split('Занятость: ')[1].split('График работы:')[0]
@@ -95,7 +96,7 @@ def parse_link(link: str) -> dict:
 
 
     # finding schedule
-    schedule = 'Unspecified'
+    schedule = None
     for block in link_soup.findAll('div', attrs={'class': 'resume-block-container'}):
         if "График" in block.text:
             schedule = block.text.split('График работы: ')[1]
@@ -106,8 +107,8 @@ def parse_link(link: str) -> dict:
             
 
     # finding experience
-    experience_years = "Unspecified"
-    experience_months = "Unspecified"
+    experience_years = None
+    experience_months = None
     for block in link_soup.findAll('span', attrs={'class': 'resume-block__title-text resume-block__title-text_sub'}):
         if "Опыт" in block.text or "experience" in block.text:
             experience = re.findall(r'\b\d+\b', block.text)
@@ -121,20 +122,29 @@ def parse_link(link: str) -> dict:
 
 
     # finding citizenship
+    citizenship = None
     for block in link_soup.findAll('div', attrs={'class': 'resume-block-container'}):
         if not block.find('p') is None:
             citizenship = block.find('p').text[13:]
+            if "Kazakhstan" in citizenship:
+                citizenship = "Казахстан"
+            elif "Russia" in citizenship:
+                citizenship = "Россия"
+            elif "Uzbekistan" in citizenship:
+                citizenship = "Узбекистан"
+        else:
+            citizenship = None
 
 
     # finding sex
     if len(link_soup.findAll('span', attrs={'data-qa': 'resume-personal-gender'})) == 0:
-        sex = "Unspecified"
+        sex = None
     else:
         sex = link_soup.findAll('span', attrs={'data-qa': 'resume-personal-gender'})[0].text
         if "Male" in sex:
-            sex = "Мужчина"
+            sex = True
         else:
-            sex = "Женщина"
+            sex = False
 
 
     resume = {
