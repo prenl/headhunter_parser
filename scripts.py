@@ -24,7 +24,10 @@ def get_average(dataframe, column: str):
             salary_list.append(int(i))
         except Exception:
             continue
-    return sum(salary_list) / len(salary_list)
+    try:
+        return str(int(sum(salary_list) / len(salary_list))) + " KZT"
+    except ZeroDivisionError:
+        return "None"
 
 
 def leave_only_row(dataframe: pd.DataFrame, column, value):
