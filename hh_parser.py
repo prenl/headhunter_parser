@@ -107,8 +107,8 @@ def parse_link(link: str) -> dict:
             
 
     # finding experience
-    experience_years = None
-    experience_months = None
+    experience_years = 0
+    experience_months = 0
     for block in link_soup.findAll('span', attrs={'class': 'resume-block__title-text resume-block__title-text_sub'}):
         if "Опыт" in block.text or "experience" in block.text:
             experience = re.findall(r'\b\d+\b', block.text)
