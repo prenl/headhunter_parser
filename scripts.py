@@ -2,7 +2,13 @@ import pandas as pd
 
 
 def sort(dataframe, column: str, ascending: bool) -> pd.DataFrame:
-    return dataframe.sort_values(by=column, ascending=ascending).reset_index(drop=True)
+    if column == "experience_years" or column == "experience_months":
+        new_dataframe = pd.DataFrame(dataframe)
+        new_dataframe['experience_months'] += new_dataframe['experience_years'] * 12
+        new_dataframe['experience_years'] = 0
+        return new_dataframe.sort_values(by='experience_months', ascending=ascending).reset_index(drop=True)
+    else:
+        return dataframe.sort_values(by=column, ascending=ascending).reset_index(drop=True)
 
 
 def get_min(dataframe, column: str) -> pd.DataFrame:
@@ -16,7 +22,7 @@ def get_max(dataframe, column: str):
             int(sorted_dataframe[column][i])
         except Exception:
             try:
-                return pd.DataFrame(sorted_dataframe.iloc[i - 1].reset_index(drop=True))
+                return pd.DataFrame(sorted_dataframe.iloc[i - 1])
             except Exception:
                 return None
     return pd.DataFrame(sort(dataframe, column, ascending=False).reset_index(drop=True).iloc[0])
@@ -37,3 +43,4 @@ def get_average(dataframe, column: str):
 def leave_only_row(dataframe: pd.DataFrame, column, value):
     delete_list = list(i for i in range(len(dataframe[column])) if dataframe[column][i] != value)
     return dataframe.drop(delete_list).reset_index(drop=True)
+
