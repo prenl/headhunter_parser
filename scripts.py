@@ -9,13 +9,17 @@ def get_min(dataframe, column: str) -> pd.DataFrame:
     return pd.DataFrame(sort(dataframe, column, ascending=True).reset_index(drop=True).iloc[0])
 
 
-def get_max(dataframe, column: str) -> float:
+def get_max(dataframe, column: str):
     sorted_dataframe = pd.DataFrame(sort(dataframe, column, ascending=True).reset_index(drop=True))
-    for i in range(len(sorted_dataframe[column]) - 1):
+    for i in range(1, len(sorted_dataframe[column])):
         try:
             int(sorted_dataframe[column][i])
         except Exception:
-            return float(sorted_dataframe[column][i - 1])
+            try:
+                return pd.DataFrame(sorted_dataframe.iloc[i - 1].reset_index(drop=True))
+            except Exception:
+                return None
+    return pd.DataFrame(sort(dataframe, column, ascending=False).reset_index(drop=True).iloc[0])
 
 def get_average(dataframe, column: str):
     salary_list = []
