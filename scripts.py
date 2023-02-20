@@ -70,3 +70,12 @@ def get_age_stats(group):
     stats.columns = ['min', 'max', 'average']
 
     return stats
+
+
+def get_sex_stats(group):
+    group = group['sex'].value_counts().unstack(fill_value=0)
+    group = group.rename(columns={True: 'Мужчина', False: 'Женщина'})
+    group.columns.name = None
+    group.index.name = None
+
+    return group
