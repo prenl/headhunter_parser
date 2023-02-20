@@ -6,7 +6,11 @@ def sort(dataframe, column: str, ascending: bool) -> pd.DataFrame:
         new_dataframe = pd.DataFrame(dataframe)
         new_dataframe['experience_months'] += new_dataframe['experience_years'] * 12
         new_dataframe['experience_years'] = 0
-        return new_dataframe.sort_values(by='experience_months', ascending=ascending).reset_index(drop=True)
+        new_dataframe = new_dataframe.sort_values(
+            by='experience_months', ascending=ascending).reset_index(drop=True)
+        new_dataframe['experience_years'] = new_dataframe['experience_months'] // 12
+        new_dataframe['experience_months'] = new_dataframe['experience_years'] % 12
+        return new_dataframe
     else:
         return dataframe.sort_values(by=column, ascending=ascending).reset_index(drop=True)
 
